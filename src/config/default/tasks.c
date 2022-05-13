@@ -52,6 +52,8 @@
 
 #include "configuration.h"
 #include "definitions.h"
+#include "GNSStasks.h"
+#include "MagnetometerTasks.h"
 
 
 // *****************************************************************************
@@ -59,113 +61,7 @@
 // Section: RTOS "Tasks" Routine
 // *****************************************************************************
 // *****************************************************************************
-
-volatile bool uart1RxReceived = false;
-volatile bool i2cTransferComplete = false;
-volatile uint8_t  i2CStep = 1;
-
 QueueHandle_t uart1Queue;
-
-static void uart1ReadEventHandler (uintptr_t context)
-{
-    uart1RxReceived = true;
-}
-    
-void vTaskGetNEOM8Mdata( void *pvParameters )
-{
-     uint8_t readByte;
-     
-    UART1_ReadCallbackRegister(uart1ReadEventHandler, 0);
-   
-    while(1)
-    {
-        UART1_Read(&readByte, 1);
-        
-        if(uart1RxReceived == true)
-        {
-            uart1RxReceived = false;
-            xQueueOverwrite( uart1Queue, &readByte );
-        }
-    }
-}
-
-static void i2c1EventHandler(uintptr_t context)
-{
-    i2cTransferComplete = true;
-}
-
-void vTaskGetMagMeasurement(void *pvParameters)
-{
-    uint16_t Address = 0x0C;
-    
-    uint8_t cmdIdle[] = {0x10, 0x00};
-    uint8_t cmdSingle[] = {0x10, 0x01};
-    uint8_t resultCheckDRDY[1];
-    uint8_t resultMeasurement[12];
-    
-    I2C1_CallbackRegister(i2c1EventHandler, 0);
-    
-    while(1)
-    {    
-        /* Temporary code for testing i2c bus and functions*/
-        
-        switch (i2CStep)
-        {
-            case 1:
-                /* Set Idle mode */
-                I2C1_Write(Address, cmdIdle, 2);
-                while(i2cTransferComplete == false); //wait here until complete
-                i2cTransferComplete = false;
-                i2CStep = 2;
-                HB_LED_Toggle();
-                break;
-                
-            case 2:
-                /* Initiate single measurement */
-                I2C1_Write(Address, cmdSingle, 2);
-                while(i2cTransferComplete == false); //wait here until complete
-                i2cTransferComplete = false;
-                i2CStep = 3;
-                break;
-            
-            case 3:
-                /* check DRDY */
-                I2C1_Read(Address, resultCheckDRDY , 1);
-                while(i2cTransferComplete == false); //wait here until complete
-                i2cTransferComplete = false;
-                i2CStep = 4;
-                GPS_LED_Toggle();
-                break;
-                
-            case 4:
-                /* Readout Data */
-                I2C1_Read(Address, resultMeasurement , 12);
-                while(i2cTransferComplete == false); //wait here until complete
-                i2cTransferComplete = false;
-                i2CStep = 1;
-                break;
-                
-            default:
-                break;
-        }
-       
-        /* Delay 1 second */
-        vTaskDelay(1000);
-    }
-    
-}
-
-void vTask2( void *pvParameters )
-{
-    uint8_t dataByte;
-    
-    while(1)
-    {
-        xQueueReceive( uart1Queue, &dataByte, 200 );
-        UART2_Write( &dataByte, 1);
-    }
-}
-
 
 // *****************************************************************************
 // *****************************************************************************
@@ -194,8 +90,8 @@ void SYS_Tasks ( void )
     
    if( uart1Queue != NULL )
    {
-        xTaskCreate( vTaskGetNEOM8Mdata, "GetNEOM8Mdata", 1000, NULL, 1, NULL );
-        xTaskCreate( vTask2, "Task 2", 1000, NULL, 1, NULL );
+        xTaskCreate(vTaskGetNEOM8Mdata, "GetNEOM8Mdata", 1000, NULL, 1, NULL );
+        xTaskCreate(vTaskSendNEOM8Mdata, "Task 2", 1000, NULL, 1, NULL );
         xTaskCreate(vTaskGetMagMeasurement, "GetMagMeasurement", 1000, NULL, 1, NULL);
     
         vTaskStartScheduler(); /* This function never returns. */
@@ -203,6 +99,7 @@ void SYS_Tasks ( void )
    else
    {
        //The queue could not be created
+       while(1);
    }
 }
 
