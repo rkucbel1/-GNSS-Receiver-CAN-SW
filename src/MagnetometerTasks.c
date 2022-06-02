@@ -3,9 +3,9 @@
 volatile bool i2cTransferComplete = false;
 //volatile uint8_t i2CStep = 1;
 
-SYSTEM_STATE i2c1State;
+MAG_STATE i2c1State;
 
-void (* const pStateFunction[])(SYSTEM_STATE *State) =
+void (* const pStateFunction[])(MAG_STATE *State) =
 {
     &i2cSetIdle,
     &i2cInitMsmnt,
@@ -99,7 +99,7 @@ void vTaskGetMagMeasurement(void *pvParameters)
     } 
 }
 
-void i2cSetIdle(SYSTEM_STATE *State)
+void i2cSetIdle(MAG_STATE *State)
 {
     I2C1_Write(Address, cmdIdle, 2);
     while(i2cTransferComplete == false); //wait here until complete
@@ -107,7 +107,7 @@ void i2cSetIdle(SYSTEM_STATE *State)
     (*State)++;
 }
 
-void i2cInitMsmnt(SYSTEM_STATE *State)
+void i2cInitMsmnt(MAG_STATE *State)
 {
     I2C1_Write(Address, cmdSingle, 2);
     while(i2cTransferComplete == false); //wait here until complete
@@ -115,7 +115,7 @@ void i2cInitMsmnt(SYSTEM_STATE *State)
     (*State)++;
 }
 
-void i2cCheckDRDY(SYSTEM_STATE *State)
+void i2cCheckDRDY(MAG_STATE *State)
 {
     I2C1_Read(Address, resultCheckDRDY , 1);
     while(i2cTransferComplete == false); //wait here until complete
@@ -123,7 +123,7 @@ void i2cCheckDRDY(SYSTEM_STATE *State)
     (*State)++;
 }
 
-void i2cReadout(SYSTEM_STATE *State)
+void i2cReadout(MAG_STATE *State)
 {
     I2C1_Read(Address, resultMeasurement , 12);
     while(i2cTransferComplete == false); //wait here until complete

@@ -9,7 +9,7 @@ static void uart1ReadEventHandler (uintptr_t context)
     uart1RxReceived = true;
 }
     
-void vTaskGetNEOM8Mdata( void *pvParameters )
+void vTaskGetNEOM8Mbyte( void *pvParameters )
 {
     uint8_t readByte;
      
@@ -27,7 +27,7 @@ void vTaskGetNEOM8Mdata( void *pvParameters )
     }
 }
 
-void vTaskSendNEOM8Mdata( void *pvParameters )
+void vTaskProcessNEOM8Mstring( void *pvParameters )
 {
     uint8_t dataByte;
     

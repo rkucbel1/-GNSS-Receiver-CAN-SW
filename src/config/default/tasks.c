@@ -90,8 +90,8 @@ void SYS_Tasks ( void )
     
    if( uart1Queue != NULL )
    {
-        xTaskCreate(vTaskGetNEOM8Mdata, "GetNEOM8Mdata", 1000, NULL, 1, NULL );
-        xTaskCreate(vTaskSendNEOM8Mdata, "Task 2", 1000, NULL, 1, NULL );
+        xTaskCreate(vTaskGetNEOM8Mbyte, "GetNEOM8Mbyte", 1000, NULL, 1, NULL );
+        xTaskCreate(vTaskProcessNEOM8Mstring, "ProcessNEOM8Mstring", 1000, NULL, 1, NULL );
         xTaskCreate(vTaskGetMagMeasurement, "GetMagMeasurement", 1000, NULL, 1, NULL);
     
         vTaskStartScheduler(); /* This function never returns. */

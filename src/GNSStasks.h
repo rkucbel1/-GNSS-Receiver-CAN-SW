@@ -4,7 +4,7 @@
 #include "configuration.h"
 #include "definitions.h"
 
-void vTaskGetNEOM8Mdata( void *pvParameters );
-void vTaskSendNEOM8Mdata( void *pvParameters );
+void vTaskGetNEOM8Mbyte( void *pvParameters );
+void vTaskProcessNEOM8Mstring( void *pvParameters );
 
 #endif
